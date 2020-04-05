@@ -1,9 +1,21 @@
 const multer = require('@koa/multer')
 const path = require('path')
+const fs = require('fs')
 //上传文件存放路径、及文件命名
 const storage = multer.diskStorage({
     destination: function (req, file, cb) {
-        cb(null,'public/lunbo')
+        let wheredata = req.headers.where
+        if (fs.existsSync(`public/${wheredata}`)) {
+            cb(null,`public/${wheredata}`)
+        }else{
+            fs.mkdir(`public/${wheredata}`, { recursive: true }, (err) => {
+                if(err){
+                    console.log(err)
+                }else{
+                    cb(null,`public/${wheredata}`)
+                }
+              });
+        }
     },
     filename: function (req, file, cb) {
         const name = file.originalname;

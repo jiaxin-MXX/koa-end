@@ -22,10 +22,10 @@ router.get('/lunbo', async (ctx, next) => {
   }
 })
 .post('/lunboadd',upload.single('file'), async (ctx) => {
-   const files = ctx.req; //上传过来的文件
-   // console.log(ctx.request.file,ctx.request.body)
-   //数据库添加字段
-   await db('insert into lunbo(name,url,urllink) values(?,?,?)', [ctx.request.body.name,ctx.request.file.filename,ctx.request.body.urllink])
+//    const files = ctx.req; //上传过来的文件
+//    // console.log(ctx.request.file,ctx.request.body)
+//    //数据库添加字段
+//    await db('insert into lunbo(name,url,urllink) values(?,?,?)', [ctx.request.body.name,ctx.request.file.filename,ctx.request.body.urllink])
    ctx.body = {
       message:'上传成功'
   }
