@@ -21,11 +21,16 @@ router.get('/lunbo', async (ctx, next) => {
       data:data[0]
   }
 })
-.post('/lunboadd',upload.single('file'), async (ctx) => {
-//    const files = ctx.req; //上传过来的文件
-//    // console.log(ctx.request.file,ctx.request.body)
+.post('/lunboadd',upload.array('file'), async (ctx) => {
+   // console.log(ctx.request.body )//上传过来的多图片
+   let {name,changshang,jinjia,shoujia,kucun,date,title} = ctx.request.body
+   let image = []
+   for(var i=0;i<ctx.request.files.length;i++){
+      image.push(ctx.request.files[i].filename)
+   }
+   image=image.join("|")
 //    //数据库添加字段
-//    await db('insert into lunbo(name,url,urllink) values(?,?,?)', [ctx.request.body.name,ctx.request.file.filename,ctx.request.body.urllink])
+    await db('insert into phonelist(name,jinjia,shoujia,tupian,kucun,changshang,jinhuoriqi,title) values(?,?,?,?,?,?,?,?)', [name,jinjia,shoujia,image,kucun,changshang,date,title])
    ctx.body = {
       message:'上传成功'
   }
