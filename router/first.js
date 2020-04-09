@@ -4,19 +4,22 @@ const upload = require('../utils/file')
 const router = new Router();
 const fs = require('fs');
 router.get('/lunbo', async (ctx, next) => { 
-   let selectReslt = await db('select * from lunbo',[])
-   for(var i=0;i<selectReslt.length;i++){
-      selectReslt[i].url="http://localhost:4000/lunbo/"+selectReslt[i].url
-   }
+   let selectReslt = await db('select * from phonelist',[])
    // console.log(selectReslt)
    ctx.body=selectReslt
 })
 .get('/lunboselect', async (ctx) => {
    //根据ID获取数据库中的信息
-   // console.log(ctx.request.query.id)
-   let data = await db('select name,url,urllink from lunbo where idlunbo=?',[ctx.request.query.id])
-   data[0].url="http://localhost:4000/lunbo/"+data[0].url
-   // console.log(data[0])
+   let data = await db('select * from phonelist where id=?',[ctx.request.query.id])
+   if(data[0].tupian){
+      let arr = data[0].tupian.split('|')
+      let imageArr = []
+      for(let item of arr){
+         imageArr.push(`http://localhost:4000/${data[0].name}/${item}`)
+      }
+      console.log(imageArr)
+      data[0].tupian=imageArr
+   }
    ctx.body = {
       data:data[0]
   }
