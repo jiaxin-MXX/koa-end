@@ -3,6 +3,24 @@ const db = require('../model/db')
 const upload = require('../utils/file')
 const router = new Router();
 const fs = require('fs');
+
+
+function deleteall(path) {
+	var files = [];
+	if(fs.existsSync(path)) {
+		files = fs.readdirSync(path);
+		files.forEach(function(file, index) {
+			var curPath = path + "/" + file;
+			if(fs.statSync(curPath).isDirectory()) { // recurse
+				deleteall(curPath);
+			} else { // delete file
+				fs.unlinkSync(curPath);
+			}
+		});
+		fs.rmdirSync(path);
+	}
+};
+
 router.get('/lunbo', async (ctx, next) => { 
    let selectReslt = await db('select * from phonelist',[])
    // console.log(selectReslt)
@@ -17,7 +35,6 @@ router.get('/lunbo', async (ctx, next) => {
       for(let item of arr){
          imageArr.push(`http://localhost:4000/${data[0].name}/${item}`)
       }
-      console.log(imageArr)
       data[0].tupian=imageArr
    }
    ctx.body = {
@@ -55,17 +72,26 @@ router.get('/lunbo', async (ctx, next) => {
   }
 })
 .get('/lunbodelete',async (ctx) => {
-   let data = await db('select url from lunbo where idlunbo=?',[ctx.request.query.id])
-   // let data = await db('delete from lunbo where idlunbo',[ctx.request.query.id])
-   if(data[0]){//判断数据库内是否存在图片
-      //判断图片是否在public路径下存在
-      if (fs.existsSync('public/lunbo/' + data[0].url)) {
-         d=fs.unlinkSync('public/lunbo/' + data[0].url);
+   let {id,name} = ctx.request.query
+   deleteall(`public/${name}`)
+   // let data = await db('select url from lunbo where idlunbo=?',[ctx.request.query.id])
+   // // let data = await db('delete from lunbo where idlunbo',[ctx.request.query.id])
+   // if(data[0]){//判断数据库内是否存在图片
+   //    //判断图片是否在public路径下存在
+   //    if (fs.existsSync('public/lunbo/' + data[0].url)) {
+   //       d=fs.unlinkSync('public/lunbo/' + data[0].url);
+   //    }
+   // }
+   try {
+      await db('delete from phonelist where id=?',[id])
+      ctx.body = {
+         type:true
+      }
+   } catch (error) {
+      ctx.body = {
+         type:false
       }
    }
-   await db('delete from lunbo where idlunbo=?',[ctx.request.query.id])
-   ctx.body = {
-      message:'删除成功'
-  }
+
 });
 module.exports=router
