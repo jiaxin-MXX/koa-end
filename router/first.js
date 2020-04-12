@@ -21,6 +21,42 @@ function deleteall(path) {
 	}
 };
 
+var copy = function( src, dst ){
+   // 读取目录中的所有文件/目录
+   let stat = fs.stat;
+   fs.readdir( src, function( err, paths ){
+       if( err ){
+           throw err;
+       }
+ 
+       paths.forEach(function( path ){
+           var _src = src + '/' + path,
+               _dst = dst + '/' + path,
+               readable, writable;      
+ 
+           stat( _src, function( err, st ){
+               if( err ){
+                   throw err;
+               }
+ 
+               // 判断是否为文件
+               if( st.isFile() ){
+                   // 创建读取流
+                   readable = fs.createReadStream( _src );
+                   // 创建写入流
+                   writable = fs.createWriteStream( _dst ); 
+                   // 通过管道来传输流
+                   readable.pipe( writable );
+               }
+               // 如果是目录则递归调用自身
+               else if( st.isDirectory() ){
+                   exists( _src, _dst, copy );
+               }
+           });
+       });
+   });
+};
+
 router.get('/lunbo', async (ctx, next) => { 
    let selectReslt = await db('select * from phonelist',[])
    // console.log(selectReslt)
@@ -55,18 +91,33 @@ router.get('/lunbo', async (ctx, next) => {
       message:'上传成功'
   }
 })
-.post('/lunboupdata',upload.single('file'), async (ctx) => {
-   let data = await db('select name,url,urllink from lunbo where idlunbo=?',[ctx.request.body.id])
-   let {name,urllink,id}=ctx.request.body
-   //判断如果添加了新的图片就把老的图片删除
-   if(ctx.request.file){
-      if (fs.existsSync('public/lunbo/' + data[0].url)) {
-         fs.unlinkSync('public/lunbo/' + data[0].url);
+.post('/lunboupdata',upload.array('file'), async (ctx) => {
+   let {id,name,changshang,jinjia,shoujia,kucun,date,title,delet} = ctx.request.body
+   let data = await db('select tupian,name from phonelist where id=?',[id])
+
+   //图片修改
+   let deleteImage = delet.split('|')
+   let image = data[0].tupian.split('|')
+   //删除标记被删除的图片
+   for(let i=0;i<deleteImage.length;i++){
+      if (fs.existsSync(`public/${data[0].name}/` + deleteImage[i])) {
+         fs.unlinkSync(`public/${data[0].name}/` + deleteImage[i]);
        }
-      resda = await db('update lunbo set name=?,url=?,urllink=? where idlunbo=?',[name,ctx.request.file.filename,urllink,id])
-   }else{
-      resda = await db('update lunbo set name=?,urllink=? where idlunbo=?',[name,urllink,id])
+      image.splice(image.indexOf(deleteImage[i]), 1);
    }
+   for(var i=0;i<ctx.request.files.length;i++){
+      image.push(ctx.request.files[i].filename)
+   }
+   image=image.join("|")
+   // 复制图片，删除文件夹
+   if(data[0].name!=name){
+      await copy(`public/${data[0].name}`,`public/${name}`)
+      setTimeout(function(){
+         deleteall(`public/${data[0].name}`)
+      },3000)
+      // 
+   }
+   await db('update phonelist set name=?,jinjia=?,shoujia=?,tupian=?,kucun=?,changshang=?,jinhuoriqi=?,title=? where id=?',[name,jinjia,shoujia,image,kucun,changshang,date,title,id])
    ctx.body = {
       message:'修改成功'
   }
