@@ -58,8 +58,13 @@ var copy = function( src, dst ){
 };
 
 router.get('/lunbo', async (ctx, next) => { 
-   let selectReslt = await db('select * from phonelist',[])
-   // console.log(selectReslt)
+   let {mess,page,pageSize} = ctx.request.query
+   let selectReslt
+   if(mess == 'all'){
+      selectReslt = await db('select * from phonelist limit ?,?',[page-1,~~pageSize])
+   }else{
+      selectReslt = await db('select * from phonelist where changshang=? limit ?,?',[mess,page-1,~~pageSize])
+   }
    ctx.body=selectReslt
 })
 .get('/lunboselect', async (ctx) => {
@@ -79,14 +84,14 @@ router.get('/lunbo', async (ctx, next) => {
 })
 .post('/lunboadd',upload.array('file'), async (ctx) => {
    // console.log(ctx.request.body )//上传过来的多图片
-   let {name,changshang,jinjia,shoujia,kucun,date,title} = ctx.request.body
+   let {name,changshang,jinjia,shoujia,kucun,date,title,xiangqing} = ctx.request.body
    let image = []
    for(var i=0;i<ctx.request.files.length;i++){
       image.push(ctx.request.files[i].filename)
    }
    image=image.join("|")
 //    //数据库添加字段
-    await db('insert into phonelist(name,jinjia,shoujia,tupian,kucun,changshang,jinhuoriqi,title) values(?,?,?,?,?,?,?,?)', [name,jinjia,shoujia,image,kucun,changshang,date,title])
+    await db('insert into phonelist(name,jinjia,shoujia,tupian,kucun,changshang,jinhuoriqi,title,xiangqing) values(?,?,?,?,?,?,?,?,?)', [name,jinjia,shoujia,image,kucun,changshang,date,title,xiangqing])
    ctx.body = {
       message:'上传成功'
   }

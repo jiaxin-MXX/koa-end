@@ -31,6 +31,14 @@ router.get('/getorder', async (ctx, next) => {
         message:'修改成功'
     }
 })
+.get('/orderselect',async(ctx,next)=>{
+    let {keyword}=ctx.request.query
+    let res = await db('SELECT * from phone.order WHERE concat(user,product) LIKE ?',[`%${keyword}%`])
+    ctx.body={
+        message:'查询成功',
+        data:res
+    }
+})
 
 
 module.exports=router
