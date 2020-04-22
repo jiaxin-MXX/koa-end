@@ -74,7 +74,7 @@ router.get('/lunbo', async (ctx, next) => {
       let arr = data[0].tupian.split('|')
       let imageArr = []
       for(let item of arr){
-         imageArr.push(`http://localhost:4000/${data[0].name}/${item}`)
+         imageArr.push(`http://localhost:4000/${data[0].firstname}/${item}`)
       }
       data[0].tupian=imageArr
    }
@@ -91,38 +91,43 @@ router.get('/lunbo', async (ctx, next) => {
    }
    image=image.join("|")
 //    //数据库添加字段
-    await db('insert into phonelist(name,jinjia,shoujia,tupian,kucun,changshang,jinhuoriqi,title,xiangqing) values(?,?,?,?,?,?,?,?,?)', [name,jinjia,shoujia,image,kucun,changshang,date,title,xiangqing])
+    await db('insert into phonelist(name,jinjia,shoujia,tupian,kucun,changshang,jinhuoriqi,title,xiangqing,firstname) values(?,?,?,?,?,?,?,?,?,?)', [name,jinjia,shoujia,image,kucun,changshang,date,title,xiangqing,name])
    ctx.body = {
       message:'上传成功'
   }
 })
 .post('/lunboupdata',upload.array('file'), async (ctx) => {
-   let {id,name,changshang,jinjia,shoujia,kucun,date,title,delet} = ctx.request.body
+   let {id,name,changshang,jinjia,shoujia,kucun,date,title,delet,xiangqing} = ctx.request.body
    let data = await db('select tupian,name from phonelist where id=?',[id])
 
    //图片修改
    let deleteImage = delet.split('|')
    let image = data[0].tupian.split('|')
    //删除标记被删除的图片
-   for(let i=0;i<deleteImage.length;i++){
-      if (fs.existsSync(`public/${data[0].name}/` + deleteImage[i])) {
-         fs.unlinkSync(`public/${data[0].name}/` + deleteImage[i]);
-       }
-      image.splice(image.indexOf(deleteImage[i]), 1);
+   // console.log(fs.existsSync(`public/${data[0].name}/` + deleteImage[i]))
+   // console.log(deleteImage)
+   if(deleteImage[0]){
+      for(let i=0;i<deleteImage.length;i++){
+         if (await fs.existsSync(`public/${data[0].name}/`+deleteImage[i])) {
+            fs.unlinkSync(`public/${data[0].name}/`+deleteImage[i]);
+          }
+         image.splice(image.indexOf(deleteImage[i]), 1);
+      }
    }
+  
    for(var i=0;i<ctx.request.files.length;i++){
       image.push(ctx.request.files[i].filename)
    }
    image=image.join("|")
    // 复制图片，删除文件夹
-   if(data[0].name!=name){
-      await copy(`public/${data[0].name}`,`public/${name}`)
-      setTimeout(function(){
-         deleteall(`public/${data[0].name}`)
-      },3000)
-      // 
-   }
-   await db('update phonelist set name=?,jinjia=?,shoujia=?,tupian=?,kucun=?,changshang=?,jinhuoriqi=?,title=? where id=?',[name,jinjia,shoujia,image,kucun,changshang,date,title,id])
+   // if(data[0].name!=name){
+   //    await copy(`public/${data[0].name}`,`public/${name}`)
+   //    setTimeout(function(){
+   //       deleteall(`public/${data[0].name}`)
+   //    },3000)
+   //    // 
+   // }
+   await db('update phonelist set name=?,jinjia=?,shoujia=?,tupian=?,kucun=?,changshang=?,jinhuoriqi=?,title=?,xiangqing=? where id=?',[name,jinjia,shoujia,image,kucun,changshang,date,title,xiangqing,id])
    ctx.body = {
       message:'修改成功'
   }

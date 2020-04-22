@@ -16,7 +16,7 @@ router.post('/login', async (ctx, next) => {
             message:'用户名存在'
         }
     }else{
-        await db('insert into user(username,password) values(?,?)', [data.name,data.password])
+        await db('insert into user(username,password,type) values(?,?,?)', [data.name,data.password,data.type])
         ctx.body={
             type:'success',
             message:'用户注册成功'
@@ -49,6 +49,26 @@ router.post('/login', async (ctx, next) => {
     
         
     }
+})
+.get('/getuser',async (ctx)=>{
+    let Reslt = await db('select * from user',[])
+    ctx.body={
+        type:true,
+        data:Reslt
+    }
+})
+.get('/userdelete',async(ctx)=>{
+    let {id} = ctx.request.query
+    try {
+        await db('DELETE FROM phone.user where id=?',[id])
+        ctx.body = {
+           type:true
+        }
+     } catch (error) {
+        ctx.body = {
+           type:false
+        }
+     }
 })
 
 module.exports=router
