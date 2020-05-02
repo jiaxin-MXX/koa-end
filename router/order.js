@@ -28,7 +28,8 @@ router.get('/getorder', async (ctx, next) => {
     let {id , form} = ctx.request.body
     await db('UPDATE phone.order SET user=?,phone=?,address=?,product=?,count=?,oneprice=?,allprice=?,shijian=? where id=?',[form.name,form.phone,form.address,form.product,form.count,form.oneprice,form.allprice,form.time,id])
     ctx.body = {
-        message:'修改成功'
+        message:'修改成功',
+        type:true
     }
 })
 .get('/orderselect',async(ctx,next)=>{

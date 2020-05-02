@@ -16,12 +16,20 @@ router.post('/login', async (ctx, next) => {
             message:'用户名存在'
         }
     }else{
-        await db('insert into user(username,password,type) values(?,?,?)', [data.name,data.password,data.type])
+        await db('insert into user(username,password,type) values(?,?,?)', [data.name,data.password,data.type=='超级管理员'?1:0])
         ctx.body={
             type:'success',
             message:'用户注册成功'
         }
         flag=false
+    }
+})
+.post('/updatalogin',async (ctx)=>{
+    let {id , name , password ,type} = ctx.request.body
+    await db('UPDATE phone.user SET username=?,password=?,type=? where id=?',[name,password,type=='超级管理员'?1:0,id])
+    ctx.body = {
+        type:'success',
+        message:'修改成功'
     }
 })
 .get('/login',async (ctx)=>{
