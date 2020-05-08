@@ -97,29 +97,29 @@ router.get('/lunbo', async (ctx, next) => {
   }
 })
 .post('/lunboupdata',upload.array('file'), async (ctx) => {
-   let {id,name,changshang,jinjia,shoujia,kucun,date,title,delet} = ctx.request.body
-   let data = await db('select tupian,firstname from phonelist where id=?',[id])
+   let {id,name,changshang,jinjia,shoujia,kucun,date,title,delet,xiangqing} = ctx.request.body
+   let data = await db('select tupian,name from phonelist where id=?',[id])
+
    //图片修改
    let deleteImage = delet.split('|')
    let image = data[0].tupian.split('|')
-   // //删除标记被删除的图片
+   //删除标记被删除的图片
+   // console.log(fs.existsSync(`public/${data[0].name}/` + deleteImage[i]))
    // console.log(deleteImage)
-   if(deleteImage[0]!=''){
-      
+   if(deleteImage[0]){
       for(let i=0;i<deleteImage.length;i++){
-         if (fs.existsSync(`public/${data[0].firstname}/` + deleteImage[i])) {
-            fs.unlinkSync(`public/${data[0].firstname}/` + deleteImage[i]);
+         if (await fs.existsSync(`public/${data[0].name}/`+deleteImage[i])) {
+            fs.unlinkSync(`public/${data[0].name}/`+deleteImage[i]);
           }
          image.splice(image.indexOf(deleteImage[i]), 1);
       }
    }
-
+  
    for(var i=0;i<ctx.request.files.length;i++){
       image.push(ctx.request.files[i].filename)
    }
    image=image.join("|")
-   // // 复制图片，删除文件夹
-   // console.log(data[0].name)
+   // 复制图片，删除文件夹
    // if(data[0].name!=name){
    //    await copy(`public/${data[0].name}`,`public/${name}`)
    //    setTimeout(function(){
@@ -127,7 +127,7 @@ router.get('/lunbo', async (ctx, next) => {
    //    },3000)
    //    // 
    // }
-   await db('update phonelist set name=?,jinjia=?,shoujia=?,tupian=?,kucun=?,changshang=?,jinhuoriqi=?,title=? where id=?',[name,jinjia,shoujia,image,kucun,changshang,date,title,id])
+   await db('update phonelist set name=?,jinjia=?,shoujia=?,tupian=?,kucun=?,changshang=?,jinhuoriqi=?,title=?,xiangqing=? where id=?',[name,jinjia,shoujia,image,kucun,changshang,date,title,xiangqing,id])
    ctx.body = {
       message:'修改成功'
   }
