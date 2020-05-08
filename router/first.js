@@ -60,12 +60,18 @@ var copy = function( src, dst ){
 router.get('/lunbo', async (ctx, next) => { 
    let {mess,page,pageSize} = ctx.request.query
    let selectReslt
+   let Total
    if(mess == 'all'){
-      selectReslt = await db('select * from phonelist limit ?,?',[page-1,~~pageSize])
+      selectReslt = await db('select * from phonelist limit ?,?',[(page-1)*pageSize,~~pageSize])
+      Total = await db('SELECT COUNT(*) FROM phone.phonelist',[])
    }else{
-      selectReslt = await db('select * from phonelist where changshang=? limit ?,?',[mess,page-1,~~pageSize])
+      selectReslt = await db('select * from phonelist where changshang=? limit ?,?',[mess,(page-1)*pageSize,~~pageSize])
+      Total = await db('SELECT COUNT(*) FROM phone.phonelist where changshang=?',[mess])
    }
-   ctx.body=selectReslt
+    ctx.body={
+        data:selectReslt,
+        tota:Total[0]['COUNT(*)']
+    }
 })
 .get('/lunboselect', async (ctx) => {
    //根据ID获取数据库中的信息
