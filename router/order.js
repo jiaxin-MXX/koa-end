@@ -1,3 +1,10 @@
+/*
+ * @Description: 
+ * @Autor: Decade Xin
+ * @Date: 2020-04-15 10:22:26
+ * @LastEditors: Decade Xin
+ * @LastEditTime: 2020-05-12 15:03:06
+ */
 const Router = require("koa-router")
 const db = require('../model/db')
 const router = new Router();
@@ -38,6 +45,16 @@ router.get('/getorder', async (ctx, next) => {
     ctx.body={
         message:'查询成功',
         data:res
+    }
+})
+.post('/orderadd',async(ctx,next)=>{
+    let {user,time,data}=ctx.request.body
+    console.log(ctx.request.data)
+    for(let item of data){
+        await db('insert into phone.order(user,phone,address,product,count,oneprice,allprice,shijian) values(?,?,?,?,?,?,?,?)', [user.user,user.phone,user.address,item.name,item.count,item.price,item.count*item.price,time])
+    }
+    ctx.body={
+        message:'success',
     }
 })
 
